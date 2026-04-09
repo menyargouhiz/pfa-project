@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Profile — Appetitus</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍽️</text></svg>" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<nav id="navbar">
+  <a class="nav-logo" href="index.html"><span class="logo-icon">🍽️</span> Appetitus</a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="explore.html">Explore</a></li>
+    <li><a href="profile.html" class="active">My Profile</a></li>
+  </ul>
+  <div class="nav-actions" id="nav-actions"></div>
+</nav>
+
+<div class="section">
+  <div class="container" style="max-width:900px;">
+    <div id="profile-content">
+      <!-- Rendu par JS -->
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-logo">🍽️ Appetitus</div>
+  <div class="footer-links">
+    <a href="index.html">Home</a><a href="explore.html">Explore</a>
+  </div>
+  <div class="footer-copy">© 2026 Appetitus</div>
+</footer>
+
+<script src="app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const u = getCurrentUser();
+  const content = document.getElementById('profile-content');
+
+  if (!u) {
+    content.innerHTML = `
+      <div style="text-align:center;padding:4rem 1rem;">
+        <div style="font-size:4rem;margin-bottom:1rem;">🍽️</div>
+        <h2 style="margin-bottom:.75rem;">You are not logged in</h2>
+        <p style="color:var(--text-muted);margin-bottom:2rem;">Log in to access your profile and badges.</p>
+        <div style="display:flex;gap:1rem;justify-content:center;">
+          <a href="login.html" class="btn btn-primary btn-lg">Log In</a>
+          <a href="signup.html" class="btn btn-ghost btn-lg">Sign Up</a>
+        </div>
+      </div>`;
+    return;
+  }
+
+  // Update review count from actual stored reviews
+  u.reviewCount = (state.userReviews || []).length;
+  localStorage.setItem('appetitus_user', JSON.stringify(u));
+
+  const currentBadge = getBadge(u.reviewCount);
+
+  content.innerHTML = `
+    <!-- Profile header -->
+    <div class="profile-header">
+      <div class="profile-avatar">${u.name.charAt(0).toUpperCase()}</div>
+      <div>
+        <div class="profile-name">${u.name}</div>
+        <div class="profile-email">📧 ${u.email}</div>
+        <div style="font-size:.78rem;color:var(--text-muted);margin-bottom:.6rem;">
+          Member since ${new Date(u.joinDate).toLocaleDateString()}
+        </div>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;">
+          <span class="badge ${currentBadge.class} badge-lg">${currentBadge.icon} ${currentBadge.name}</span>
+          <span style="font-size:.82rem;color:var(--text-muted);">${u.reviewCount} published reviews</span>
+        </div>
+        ${u.favCuisines && u.favCuisines.length ? `
+          <div style="margin-top:.6rem;font-size:.78rem;color:var(--text-muted);">
+            🍽️ Favorite cuisines: ${u.favCuisines.join(', ')}
+          </div>` : ''}
+      </div>
+      <button class="btn btn-ghost" style="margin-left:auto;align-self:flex-start;border-radius:var(--radius-sm)" onclick="logout()">
+        Log Out
+      </button>
+    </div>
+
+    <!-- Badges showcase -->
+    <div style="margin-bottom:2.5rem;">
+      <div class="section-eyebrow" style="margin-bottom:.6rem;">🎖️ My badges</div>
+      <h2 class="section-title" style="font-size:1.4rem;margin-bottom:1rem;">Badge progression</h2>
+      <div class="badges-showcase" id="badges-grid"></div>
+    </div>
+
+    <!-- Progress to next badge -->
+    <div id="next-badge-section" style="margin-bottom:2.5rem;background:var(--bg-surface);border-radius:var(--radius-md);padding:1.25rem;">
+    </div>
+
+    <!-- My reviews -->
+    <div>
+      <div class="section-eyebrow" style="margin-bottom:.6rem;">💬 My reviews</div>
+      <h2 class="section-title" style="font-size:1.4rem;margin-bottom:1rem;">Published reviews (${u.reviewCount})</h2>
+      <div id="my-reviews-list"></div>
+    </div>`;
+
+  renderBadgesGrid(u.reviewCount, currentBadge);
+  renderNextBadge(u.reviewCount);
+  renderMyReviewsList();
+});
+
+function renderBadgesGrid(count, currentBadge) {
+  const grid = document.getElementById('badges-grid');
+  if (!grid) return;
+  grid.innerHTML = BADGES.map(b => {
+    const earned = count >= b.min;
+    return `
+    <div class="badge-card ${earned ? 'earned' : 'locked'}">
+      <div class="bicon">${b.icon}</div>
+      <div class="bname">${b.name}</div>
+      <div class="bdesc">${b.desc}</div>
+      ${earned ? '<div style="margin-top:.4rem;font-size:.68rem;color:var(--accent);font-weight:700;">✓ Unlocked</div>' : '<div style="margin-top:.4rem;font-size:.68rem;color:var(--text-muted);">🔒 Locked</div>'}
+    </div>`;
+  }).join('');
+}
+
+function renderNextBadge(count) {
+  const section = document.getElementById('next-badge-section');
+  if (!section) return;
+  const next = BADGES.find(b => count < b.min);
+  if (!next) {
+    section.innerHTML = `<div style="text-align:center;font-size:.95rem;">🎉 <strong>Congratulations!</strong> You have reached the maximum badge: 💎 Maestro Platinum!</div>`;
+    return;
+  }
+  const pct = Math.min(100, (count / next.min) * 100);
+  section.innerHTML = `
+    <div style="font-weight:700;margin-bottom:.5rem;">Next badge: ${next.icon} ${next.name}</div>
+    <div style="font-size:.83rem;color:var(--text-muted);margin-bottom:.75rem;">
+      ${count} / ${next.min} reviews · need ${next.min - count} more reviews to unlock ${next.name}
+    </div>
+    <div style="height:8px;background:var(--border);border-radius:4px;overflow:hidden;">
+      <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--accent),#FF8A65);border-radius:4px;transition:width 1s ease;"></div>
+    </div>`;
+}
+
+function renderMyReviewsList() {
+  const container = document.getElementById('my-reviews-list');
+  if (!container) return;
+  const reviews = state.userReviews || [];
+  if (!reviews.length) {
+    container.innerHTML = `
+      <div style="text-align:center;padding:3rem;color:var(--text-muted);">
+        <div style="font-size:2.5rem;margin-bottom:.75rem;">✍️</div>
+        <p>You haven't left any reviews yet.</p>
+        <a href="explore.html" class="btn btn-outline" style="margin-top:1rem;border-radius:var(--radius-sm);">Explore restaurants →</a>
+      </div>`;
+    return;
+  }
+  container.innerHTML = `<div class="my-reviews-list">` + [...reviews].reverse().map(ur => {
+    const r = state.restaurants.find(rx => rx.id === ur.restaurantId);
+    if (!r) return '';
+    return `
+    <div class="my-review-item" onclick="window.location='explore.html'">
+      <img class="my-review-thumb" src="${r.image}" alt="${r.name}" />
+      <div style="flex:1;">
+        <div class="my-review-name">${r.name}</div>
+        <div class="stars" style="margin:3px 0;">${renderStars(ur.rating)}</div>
+        <div class="my-review-text">${ur.text.slice(0,120)}${ur.text.length>120?'…':''}</div>
+        <div style="font-size:.72rem;color:var(--text-muted);margin-top:.3rem;">📅 ${fmtDate(ur.date)}</div>
+      </div>
+    </div>`;
+  }).join('') + `</div>`;
+}
+</script>
+</body>
+</html>
