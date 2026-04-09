@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign Up — Appetitus</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍽️</text></svg>" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<nav id="navbar">
+  <a class="nav-logo" href="index.html"><span class="logo-icon">🍽️</span> Appetitus</a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="explore.html">Explore</a></li>
+  </ul>
+  <div class="nav-actions" id="nav-actions"></div>
+</nav>
+
+<div class="auth-page" style="align-items:flex-start;padding-top:3rem;padding-bottom:3rem;">
+  <div class="auth-card" style="max-width:500px;">
+    <div class="auth-logo-wrap">
+      <div class="auth-logo-icon">🍽️</div>
+      <div class="auth-logo-name">Appetitus</div>
+    </div>
+    <h1 class="auth-title">Sign Up</h1>
+    <p class="auth-subtitle">Join the community and unlock loyalty badges by leaving reviews!</p>
+
+    <div class="form-group">
+      <label class="form-label">Full name</label>
+      <input class="form-input" type="text" id="name" placeholder="Mary Smith" autocomplete="name" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Email address</label>
+      <input class="form-input" type="email" id="email" placeholder="you@example.com" autocomplete="email" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input class="form-input" type="password" id="password" placeholder="Minimum 6 characters" autocomplete="new-password" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Confirm password</label>
+      <input class="form-input" type="password" id="password2" placeholder="Repeat your password" />
+    </div>
+
+    <!-- Cuisine preferences -->
+    <div class="form-group">
+      <label class="form-label">Your favorite cuisines (optional)</label>
+      <div class="cuisine-chips" id="cuisine-chips">
+        <span class="cuisine-chip" data-v="gastronomique" onclick="toggleChip(this)">⭐ Fine Dining</span>
+        <span class="cuisine-chip" data-v="asiatique" onclick="toggleChip(this)">🥢 Asian</span>
+        <span class="cuisine-chip" data-v="italien" onclick="toggleChip(this)">🍕 Italian</span>
+        <span class="cuisine-chip" data-v="fruits-de-mer" onclick="toggleChip(this)">🦞 Seafood</span>
+        <span class="cuisine-chip" data-v="street-food" onclick="toggleChip(this)">🌮 Street Food</span>
+        <span class="cuisine-chip" data-v="brasserie" onclick="toggleChip(this)">🍺 Pubs</span>
+        <span class="cuisine-chip" data-v="africaine" onclick="toggleChip(this)">🌍 African</span>
+      </div>
+    </div>
+
+    <!-- Badge preview -->
+    <div style="background:var(--bg-surface);border:1.5px solid var(--border);border-radius:var(--radius-md);padding:1rem;margin-bottom:1.25rem;display:flex;align-items:center;gap:.75rem;">
+      <span style="font-size:1.8rem;">🌱</span>
+      <div>
+        <div style="font-weight:700;font-size:.85rem;">Starting badge: Curious</div>
+        <div style="font-size:.75rem;color:var(--text-muted);">Leave your first reviews and earn more badges!</div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary btn-full" style="border-radius:var(--radius-sm);" onclick="doSignup()">
+      🌱 Create my Appetitus account
+    </button>
+
+    <div class="auth-switch" style="margin-top:1.25rem;">
+      Already have an account? <a href="login.html">Log In</a>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+function toggleChip(el) {
+  el.classList.toggle('selected');
+}
+
+function doSignup() {
+  const name  = document.getElementById('name').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const pass  = document.getElementById('password').value;
+  const pass2 = document.getElementById('password2').value;
+
+  if (!name)  { toast('⚠️ Enter your full name.', 'error'); return; }
+  if (!email) { toast('⚠️ Enter your email address.', 'error'); return; }
+  if (pass.length < 6) { toast('⚠️ Password too short (min. 6 characters).', 'error'); return; }
+  if (pass !== pass2)  { toast('⚠️ Passwords do not match.', 'error'); return; }
+
+  const favCuisines = [...document.querySelectorAll('.cuisine-chip.selected')].map(c => c.dataset.v);
+
+  const user = {
+    name, email,
+    joinDate: new Date().toISOString(),
+    reviewCount: 0,
+    favCuisines
+  };
+  localStorage.setItem('appetitus_user', JSON.stringify(user));
+  toast(`🎉 Welcome ${name}! Your 🌱 Curious badge awaits.`);
+  setTimeout(() => window.location.href = 'profile.html', 1400);
+}
+</script>
+</body>
+</html>
