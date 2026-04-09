@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Log In — Appetitus</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍽️</text></svg>" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<nav id="navbar">
+  <a class="nav-logo" href="index.html"><span class="logo-icon">🍽️</span> Appetitus</a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="explore.html">Explore</a></li>
+  </ul>
+  <div class="nav-actions" id="nav-actions"></div>
+</nav>
+
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-logo-wrap">
+      <div class="auth-logo-icon">🍽️</div>
+      <div class="auth-logo-name">Appetitus</div>
+    </div>
+    <h1 class="auth-title">Welcome back!</h1>
+    <p class="auth-subtitle">Log in to manage your reviews and unlock badges.</p>
+
+    <!-- Social login (decorative) -->
+    <button class="social-btn" onclick="fakeOAuth('Google')">
+      <span>🌐</span> Continue with Google
+    </button>
+    <button class="social-btn" onclick="fakeOAuth('Facebook')">
+      <span>📘</span> Continue with Facebook
+    </button>
+
+    <div class="auth-divider"><span>or with email</span></div>
+
+    <div class="form-group">
+      <label class="form-label">Email address</label>
+      <input class="form-input" type="email" id="email" placeholder="you@example.com" autocomplete="email" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input class="form-input" type="password" id="password" placeholder="Your password" autocomplete="current-password" />
+    </div>
+
+    <div style="text-align:right;margin-bottom:1.25rem;">
+      <a href="#" style="font-size:.82rem;color:var(--accent);">Forgot password?</a>
+    </div>
+
+    <button class="btn btn-primary btn-full" style="border-radius:var(--radius-sm);" onclick="doLogin()">
+      Log In →
+    </button>
+
+    <div class="auth-switch">
+      Don't have an account yet? <a href="signup.html">Sign Up</a>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+function fakeOAuth(provider) {
+  const name = prompt(`Enter your name for ${provider} login (simulation):`);
+  if (!name || !name.trim()) return;
+  const user = { name: name.trim(), email: `user@${provider.toLowerCase()}.com`, joinDate: new Date().toISOString(), reviewCount: 0, favCuisines: [] };
+  localStorage.setItem('appetitus_user', JSON.stringify(user));
+  toast(`✅ Welcome, ${user.name}!`);
+  setTimeout(() => window.location.href = 'profile.html', 1000);
+}
+
+function doLogin() {
+  const email = document.getElementById('email').value.trim();
+  const pass  = document.getElementById('password').value.trim();
+  if (!email || !pass) { toast('⚠️ Please fill in all fields.', 'error'); return; }
+
+  // Check stored user
+  const stored = JSON.parse(localStorage.getItem('appetitus_user') || 'null');
+  if (stored && stored.email === email) {
+    toast(`✅ Welcome, ${stored.name}!`);
+    setTimeout(() => window.location.href = 'profile.html', 1000);
+  } else {
+    // Auto-create from email login as demo
+    const name = email.split('@')[0];
+    const user = { name, email, joinDate: new Date().toISOString(), reviewCount: 0, favCuisines: [] };
+    localStorage.setItem('appetitus_user', JSON.stringify(user));
+    toast(`✅ Welcome, ${user.name}!`);
+    setTimeout(() => window.location.href = 'profile.html', 1000);
+  }
+}
+
+document.getElementById('password')?.addEventListener('keydown', e => { if (e.key==='Enter') doLogin(); });
+</script>
+</body>
+</html>
